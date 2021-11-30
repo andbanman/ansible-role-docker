@@ -1,0 +1,33 @@
+- name: "Install Ubuntu Docker repository"
+  when: 'ansible_distribution == "Ubuntu"'
+  block:
+  - name: "Install Docker gpg key"
+    apt_key:
+      url: "https://download.docker.com/linux/ubuntu/gpg"
+      keyring: "/usr/share/keyrings/docker-archive-keyring.gpg"
+    register: gpg_install
+
+  - name: "Check package architecture"
+    command: "dpkg --print-architecture"
+    register: dpkg_arch
+    changed_when: false
+
+  - name: "Add docker repository"
+    apt_repository:
+      repo: "deb [arch={{ dpkg_arch.stdout }} signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
+      filename: "docker"
+      update_cache: yes
+
+# for now just install the OS package, but should follow the detailed instructions
+# https://docs.docker.com/engine/install/ubuntu/
+- name: "Install Docker distro packages"
+  package:
+    name: "{{ docker_packages }}"
+    state: present
+
+- name: Install Docker Compose"
+  get_url:
+    checksum: "sha256:f3f10cf3dbb8107e9ba2ea5f23c1d2159ff7321d16f0a23051d68d8e2547b323"
+    url: "https://github.com/docker/compose/releases/download/{{ docker_compose_version }}/docker-compose-{{ ansible_system }}-{{ ansible_architecture }}"
+    dest: "/usr/local/bin/docker-compose"
+    mode: "755"
