@@ -25,6 +25,23 @@
     name: "{{ docker_packages }}"
     state: present
 
+- name: "Install Docker daemon configuration"
+  block:
+    - name: Create Docker config directory
+      file:
+        state: directory
+        path: "/etc/docker"
+        mode: "0755"
+        owner: root
+        group: root
+    - name: Install Docker daemon config template
+      template:
+        src:   "etc/docker/daemon.json.j2"
+        dest: "/etc/docker/daemon.json"
+        mode: "0644"
+        owner: root
+        group: root
+
 - name: Install Docker Compose"
   get_url:
     checksum: "sha256:f3f10cf3dbb8107e9ba2ea5f23c1d2159ff7321d16f0a23051d68d8e2547b323"
